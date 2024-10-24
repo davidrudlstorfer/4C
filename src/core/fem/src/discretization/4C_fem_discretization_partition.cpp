@@ -428,8 +428,8 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> Core::FE::Discretization::bui
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 std::pair<std::shared_ptr<Epetra_Map>, std::shared_ptr<Epetra_Map>>
-Core::FE::Discretization::build_element_row_column(
-    const Epetra_Map& noderowmap, const Epetra_Map& nodecolmap, bool do_extended_ghosting) const
+Core::FE::Discretization::build_element_row_column(const Epetra_Map& noderowmap,
+    const Epetra_Map& nodecolmap, const bool find_ghost_elements_with_no_owned_node) const
 {
   const int myrank = Core::Communication::my_mpi_rank(get_comm());
   const int numproc = Core::Communication::num_mpi_ranks(get_comm());
@@ -514,11 +514,11 @@ Core::FE::Discretization::build_element_row_column(
       for (int j = 0; j < numnode; ++j)
         if (noderowmap.MyGID(nodeids[j])) ++nummine;
 
-      // Check if I own nodes of this element
-      if (!nummine)
+      // if I do not own any of the nodes, it is definitely not my element
+      // and I do not ghost it
+      if (find_ghost_elements_with_no_owned_node)
       {
-        // If the rebalance type is monolithic, activate additional ghosting
-        if (do_extended_ghosting)
+        if (!nummine)
         {
           // If all nodes of the element are in col map we still ghost it
           bool all_nodes_in_col = true;
@@ -531,11 +531,10 @@ Core::FE::Discretization::build_element_row_column(
           }
           continue;
         }
-
-        // if I do not own any of the nodes, it is definitely not my element
-        // and I do not ghost it
-        else
-          continue;
+      }
+      else if (!nummine)
+      {
+        continue;
       }
 
       // check whether I ghost all nodes of this element
