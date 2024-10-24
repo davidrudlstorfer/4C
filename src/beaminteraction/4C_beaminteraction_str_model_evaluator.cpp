@@ -206,7 +206,7 @@ void Solid::ModelEvaluator::BeamInteraction::setup()
   binstrategy_->set_deforming_binning_domain_handler(
       tim_int().get_data_sdyn_ptr()->get_periodic_bounding_box());
 
-  bindis_ = binstrategy_->bin_discret();
+  // bindis_ = binstrategy_->bin_discret();
 
   // construct, init and setup beam crosslinker handler and binning strategy
   // todo: move this and its single call during partition to crosslinker submodel
@@ -239,7 +239,7 @@ void Solid::ModelEvaluator::BeamInteraction::setup()
 
   // some screen output
   Core::Rebalance::Utils::print_parallel_distribution(*ia_discret_);
-  Core::Rebalance::Utils::print_parallel_distribution(*bindis_);
+  // Core::Rebalance::Utils::print_parallel_distribution(*bindis_);
 
   issetup_ = true;
 }
@@ -807,7 +807,7 @@ void Solid::ModelEvaluator::BeamInteraction::write_restart(
   int const stepn = global_state().get_step_n();
   double const timen = global_state().get_time_n();
   std::shared_ptr<Core::IO::DiscretizationWriter> ia_writer = ia_discret_->writer();
-  std::shared_ptr<Core::IO::DiscretizationWriter> bin_writer = bindis_->writer();
+  // std::shared_ptr<Core::IO::DiscretizationWriter> bin_writer = bindis_->writer();
 
   // write restart of ia_discret
   ia_writer->write_mesh(stepn, timen);
@@ -826,7 +826,7 @@ void Solid::ModelEvaluator::BeamInteraction::write_restart(
   // sub model loop
   Vector::iterator sme_iter;
   for (sme_iter = me_vec_ptr_->begin(); sme_iter != me_vec_ptr_->end(); ++sme_iter)
-    (*sme_iter)->write_restart(*ia_writer, *bin_writer);
+    (*sme_iter)->write_restart(*ia_writer);
 }
 
 /*----------------------------------------------------------------------------*

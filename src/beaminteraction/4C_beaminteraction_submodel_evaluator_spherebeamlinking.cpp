@@ -499,7 +499,7 @@ void BeamInteraction::SUBMODELEVALUATOR::SphereBeamLinking::reset_step_state()
 /*-------------------------------------------------------------------------------*
  *-------------------------------------------------------------------------------*/
 void BeamInteraction::SUBMODELEVALUATOR::SphereBeamLinking::write_restart(
-    Core::IO::DiscretizationWriter& ia_writer, Core::IO::DiscretizationWriter& bin_writer) const
+    Core::IO::DiscretizationWriter& ia_writer) const
 {
   check_init_setup();
 
