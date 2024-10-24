@@ -1323,9 +1323,9 @@ namespace Core::FE
     only builds maps!
 
     */
-    virtual std::pair<std::shared_ptr<Epetra_Map>, std::shared_ptr<Epetra_Map>>
-    build_element_row_column(const Epetra_Map& noderowmap, const Epetra_Map& nodecolmap,
-        bool do_extended_ghosting = false) const;
+    virtual std::pair<std::shared_ptr<Epetra_Map>, std::shared_ptr<Epetra_Map>> build_element_row_column(
+        const Epetra_Map& noderowmap, const Epetra_Map& nodecolmap,
+        const bool find_ghost_elements_with_no_owned_node = false) const;
 
     /*!
     \brief Export the nodes to a different parallel layout
