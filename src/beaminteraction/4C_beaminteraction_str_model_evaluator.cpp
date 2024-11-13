@@ -435,8 +435,9 @@ void Solid::ModelEvaluator::BeamInteraction::partition_problem()
       Global::Problem::instance()->geometric_search_params(),
       Global::Problem::instance()->io_params());
 
-  Teuchos::RCP<const Epetra_CrsGraph> enriched_graph = Core::Rebalance::build_monolithic_node_graph(
-      *ia_discret_, geometric_search_params_ptr_, ia_state_ptr_->get_dis_col_np());
+  std::shared_ptr<const Epetra_CrsGraph> enriched_graph =
+      Core::Rebalance::build_monolithic_node_graph(
+          *ia_discret_, geometric_search_params_ptr_, ia_state_ptr_->get_dis_col_np());
 
 
   std::vector<std::pair<int, Core::GeometricSearch::BoundingVolume>> bounding_boxes;
