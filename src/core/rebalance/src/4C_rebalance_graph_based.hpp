@@ -140,7 +140,7 @@ namespace Core::Rebalance
   std::shared_ptr<const Epetra_CrsGraph> build_monolithic_node_graph(
       const Core::FE::Discretization& dis,
       const Core::GeometricSearch::GeometricSearchParams& params,
-      const Teuchos::RCP<const Core::LinAlg::Vector<double>>& disp_vec = Teuchos::null);
+      const std::shared_ptr<const Core::LinAlg::Vector<double>>& disp_vec = nullptr);
 
 }  // namespace Core::Rebalance
 
