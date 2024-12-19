@@ -107,6 +107,11 @@ bool BeamInteraction::BeamToBeamPotentialPair<numnodes, numnodalvalues, T>::eval
       k == 0.0)
     return false;
 
+  // print out element IDs to compare new ArborX approach to old approach
+  if (m == 6.0)  // only print out element pairs for k = 6.0 as they are identical for k = 12.0
+  {
+    std::cout << element1()->id() << "," << element2()->id() << std::endl;
+  }
 
   // set class variables
   if (linechargeconds.size() == 2)
