@@ -39,7 +39,7 @@ namespace Core::IO::GridGenerator
   void create_rectangular_cuboid_discretization(Core::FE::Discretization& dis,
       const Core::IO::GridGenerator::RectangularCuboidInputs& inputData, bool outputFlag)
   {
-    const Epetra_Comm& comm = dis.get_comm();
+    MPI_Comm comm = dis.get_comm();
     const int myrank = Core::Communication::my_mpi_rank(comm);
     const int numproc = Core::Communication::num_mpi_ranks(comm);
 
@@ -71,7 +71,8 @@ namespace Core::IO::GridGenerator
       {
         scale = 2;
       }
-      elementRowMap = std::make_shared<Epetra_Map>(scale * numnewele, 0, comm);
+      elementRowMap = std::make_shared<Epetra_Map>(
+          scale * numnewele, 0, Core::Communication::as_epetra_comm(comm));
     }
     else  // fancy final box map
     {
@@ -147,7 +148,8 @@ namespace Core::IO::GridGenerator
           for (size_t ix = xranges[mysection[0]]; ix < xranges[mysection[0] + 1]; ++ix)
             mynewele[idx++] = (iz * inputData.interval_[1] + iy) * inputData.interval_[0] + ix;
 
-      elementRowMap = std::make_shared<Epetra_Map>(-1, nummynewele, mynewele.data(), 0, comm);
+      elementRowMap = std::make_shared<Epetra_Map>(
+          -1, nummynewele, mynewele.data(), 0, Core::Communication::as_epetra_comm(comm));
     }
 
     // Build an input line that matches what is expected from a dat file.
@@ -156,7 +158,8 @@ namespace Core::IO::GridGenerator
     const std::string argument_line = std::invoke(
         [&]()
         {
-          std::stringstream eleargstream(inputData.distype_);
+          std::ostringstream eleargstream;
+          eleargstream << inputData.distype_;
           const int num_nodes = Core::FE::cell_type_switch(
               distype_enum, [](auto cell_type_t) { return Core::FE::num_nodes<cell_type_t()>; });
           for (int i = 0; i < num_nodes; ++i)
@@ -183,9 +186,7 @@ namespace Core::IO::GridGenerator
       std::istringstream eleargstream(argument_line);
       if (not linedef->read(eleargstream))
       {
-        Core::IO::cout << "\n"
-                       << eleid << " " << inputData.elementtype_ << " " << inputData.distype_
-                       << " ";
+        Core::IO::cout << "\n" << eleid << " " << inputData.elementtype_ << " ";
         linedef->print(Core::IO::cout.cout_replacement());
         Core::IO::cout << "\n";
         FOUR_C_THROW("failed to read element %d %s %s", eleid, inputData.elementtype_.c_str(),
@@ -240,10 +241,10 @@ namespace Core::IO::GridGenerator
     {
       std::shared_ptr<const Epetra_CrsGraph> graph =
           Core::Rebalance::build_graph(dis, *elementRowMap);
-      nodeRowMap = std::make_shared<Epetra_Map>(
-          -1, graph->RowMap().NumMyElements(), graph->RowMap().MyGlobalElements(), 0, comm);
-      nodeColMap = std::make_shared<Epetra_Map>(
-          -1, graph->ColMap().NumMyElements(), graph->ColMap().MyGlobalElements(), 0, comm);
+      nodeRowMap = std::make_shared<Epetra_Map>(-1, graph->RowMap().NumMyElements(),
+          graph->RowMap().MyGlobalElements(), 0, Core::Communication::as_epetra_comm(comm));
+      nodeColMap = std::make_shared<Epetra_Map>(-1, graph->ColMap().NumMyElements(),
+          graph->ColMap().MyGlobalElements(), 0, Core::Communication::as_epetra_comm(comm));
     }
 
 

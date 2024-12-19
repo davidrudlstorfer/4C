@@ -27,7 +27,6 @@
 #include <unordered_map>
 
 // forward declarations
-class Epetra_Comm;
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -982,7 +981,7 @@ namespace Solid
       std::shared_ptr<const Solid::TimeInt::Base> timint_ptr_;
 
       //! read-only access to the epetra communicator
-      std::shared_ptr<const Epetra_Comm> comm_ptr_;
+      MPI_Comm comm_ptr_;
 
       //! beam data container pointer
       std::shared_ptr<BeamData> beam_data_ptr_;
@@ -1259,6 +1258,18 @@ namespace Solid
         mortar_action_ = actiontype;
       }
 
+      void set_user_data(const std::any& user_data)
+      {
+        check_init();
+        user_data_ = user_data;
+      }
+
+      void clear_user_data()
+      {
+        check_init();
+        user_data_.reset();
+      }
+
       //! @}
 
      protected:
@@ -1308,6 +1319,14 @@ namespace Solid
         return str_data_ptr_->global_state();
       }
 
+      [[nodiscard]] const std::any& get_user_data() const override
+      {
+        check_init();
+        return user_data_;
+      }
+
+
+
      private:
       bool isinit_;
 
@@ -1321,7 +1340,8 @@ namespace Solid
 
       std::shared_ptr<const Solid::ModelEvaluator::Data> str_data_ptr_;
 
-    };  // class ContactData
+      std::any user_data_;
+    };
 
     /*! Brownian dynamic data container for the model evaluation procedure.
      *

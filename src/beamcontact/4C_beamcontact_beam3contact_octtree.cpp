@@ -74,13 +74,12 @@ Beam3ContactOctTree::Beam3ContactOctTree(Teuchos::ParameterList& params,
     // COBB: 1. value for axial extrusion, 2. value for radial extrusion
     // SPBB: one value for radial extrusion
 
-    std::istringstream extrusion_value_stream(
-        Teuchos::getNumericStringParameter(params, "BEAMS_EXTVAL"));
+    std::string extrusion_value_in(Teuchos::getNumericStringParameter(params, "BEAMS_EXTVAL"));
 
     Core::IO::ValueParser extrusionvalue_parser(
-        extrusion_value_stream, "While reading extrusion values: ");
+        extrusion_value_in, "While reading extrusion values: ");
 
-    while (!extrusionvalue_parser.eof())
+    while (!extrusionvalue_parser.at_end())
     {
       extrusionvalue_->push_back(extrusionvalue_parser.read<double>());
     }
@@ -1018,8 +1017,10 @@ bool Beam3ContactOctTree::locate_all()
     std::vector<int> gids;
     for (int i = 0; i < bboxlengthglobal; i++) gids.push_back(i);
     // crosslinker column and row map
-    Epetra_Map octtreerowmap((int)gids.size(), 0, discret_.get_comm());
-    Epetra_Map octtreemap(-1, (int)gids.size(), gids.data(), 0, discret_.get_comm());
+    Epetra_Map octtreerowmap(
+        (int)gids.size(), 0, Core::Communication::as_epetra_comm(discret_.get_comm()));
+    Epetra_Map octtreemap(-1, (int)gids.size(), gids.data(), 0,
+        Core::Communication::as_epetra_comm(discret_.get_comm()));
 
     // build Core::LinAlg::MultiVector<double>s which hold the BBs of the OctreeMap; for
     // communication

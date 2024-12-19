@@ -277,25 +277,25 @@ CONTACT::Beam3cmanager::Beam3cmanager(Core::FE::Discretization& discret, double 
     mi_->clear();
     // read potential law parameters from input and check
     {
-      std::istringstream pot_law_exponents_stream(
+      std::string pot_law_exponents_in(
           Teuchos::getNumericStringParameter(sbeampotential_, "POT_LAW_EXPONENT"));
 
       Core::IO::ValueParser pot_law_exponents_parser(
-          pot_law_exponents_stream, "While reading potential law exponents: ");
+          pot_law_exponents_in, "While reading potential law exponents: ");
 
-      while (!pot_law_exponents_parser.eof())
+      while (!pot_law_exponents_parser.at_end())
       {
         mi_->push_back(pot_law_exponents_parser.read<double>());
       }
     }
     {
-      std::istringstream pot_law_prefactors_stream(
+      std::string pot_law_prefactors_in(
           Teuchos::getNumericStringParameter(sbeampotential_, "POT_LAW_PREFACTOR"));
 
       Core::IO::ValueParser pot_law_prefactors_parser(
-          pot_law_prefactors_stream, "While reading potential law prefactors: ");
+          pot_law_prefactors_in, "While reading potential law prefactors: ");
 
-      while (!pot_law_prefactors_parser.eof())
+      while (!pot_law_prefactors_parser.at_end())
       {
         ki_->push_back(pot_law_prefactors_parser.read<double>());
       }
@@ -640,7 +640,7 @@ void CONTACT::Beam3cmanager::init_beam_contact_discret()
   // the copied beam contact discretization.
 
   {
-    std::shared_ptr<Epetra_Comm> comm(pdiscret_.get_comm().Clone());
+    MPI_Comm comm(pdiscret_.get_comm());
     btsoldiscret_ = std::make_shared<Core::FE::Discretization>(
         (std::string) "beam to solid contact", comm, Global::Problem::instance()->n_dim());
   }
@@ -925,16 +925,16 @@ void CONTACT::Beam3cmanager::init_beam_contact_discret()
       esdata, erdata, (int)ertproc.size(), ertproc.data(), bt_sol_discret().get_comm());
 
   // build completely overlapping node map (on participating processors)
-  std::shared_ptr<Epetra_Map> newnodecolmap = std::make_shared<Epetra_Map>(
-      -1, (int)rdata.size(), rdata.data(), 0, bt_sol_discret().get_comm());
+  std::shared_ptr<Epetra_Map> newnodecolmap = std::make_shared<Epetra_Map>(-1, (int)rdata.size(),
+      rdata.data(), 0, Core::Communication::as_epetra_comm(bt_sol_discret().get_comm()));
   sdata.clear();
   stproc.clear();
   rdata.clear();
   allproc.clear();
 
   // build completely overlapping element map (on participating processors)
-  std::shared_ptr<Epetra_Map> newelecolmap = std::make_shared<Epetra_Map>(
-      -1, (int)erdata.size(), erdata.data(), 0, bt_sol_discret().get_comm());
+  std::shared_ptr<Epetra_Map> newelecolmap = std::make_shared<Epetra_Map>(-1, (int)erdata.size(),
+      erdata.data(), 0, Core::Communication::as_epetra_comm(bt_sol_discret().get_comm()));
   esdata.clear();
   estproc.clear();
   erdata.clear();

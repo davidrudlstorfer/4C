@@ -166,11 +166,19 @@ namespace Core::IO
         }
         case OutputEntity::element:
         {
+          if (unique_names.size() != 1)
+            FOUR_C_THROW(
+                "For now, element based output can only be written if there is only one unique "
+                "entry in the context object");
           append_element_based_result_data_vector(result_data, context_map.count(name), name);
           break;
         }
         case OutputEntity::node:
         {
+          if (unique_names.size() != 1)
+            FOUR_C_THROW(
+                "For now, node based output can only be written if there is only one unique "
+                "entry in the context object");
           append_node_based_result_data_vector(result_data, context_map.count(name), name);
           break;
         }
@@ -477,7 +485,8 @@ namespace Core::IO
       const std::function<bool(const Core::Elements::Element* ele)>& element_predicate)
   {
     // Set up a multivector which will be populated with all ghosting informations.
-    const Epetra_Comm& comm = discretization.element_col_map()->Comm();
+    MPI_Comm comm =
+        Core::Communication::unpack_epetra_comm(discretization.element_col_map()->Comm());
     const int n_proc = Core::Communication::num_mpi_ranks(comm);
     const int my_proc = Core::Communication::my_mpi_rank(comm);
 

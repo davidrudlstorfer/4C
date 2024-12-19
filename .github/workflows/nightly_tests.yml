@@ -13,6 +13,8 @@ jobs:
     defaults:
       run:
         shell: bash
+    outputs:
+      test-chunks: ${{ steps.set-matrix.outputs.chunk-array }}
     steps:
       - uses: actions/checkout@v4
       - name: Check docker hash
@@ -27,6 +29,13 @@ jobs:
         with:
           build-directory: ${{ github.workspace }}/build
           retention-days: 1
+      - uses: ./.github/actions/chunk_test_suite
+        id: set-matrix
+        with:
+          build-directory: ${{ github.workspace }}/build
+          source-directory: ${{ github.workspace }}
+          number-of-chunks: 15
+          junit-report-artifact-name: gcc13_assertions_test_report.xml
 
   gcc13_assertions_test:
     needs: gcc13_assertions_build
@@ -37,8 +46,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test-chunk: ["1,315", "316,443", "444,699", "700,804", "805,965", "966,1112", "1113,1502", "1503,1652",
-          "1653,2128", "2129,2429", "2430,2580", "2581,2696", "2697,2719", "2720,2737", "2738,"]
+        test-chunk: ${{fromJson(needs.gcc13_assertions_build.outputs.test-chunks)}}
     defaults:
       run:
         shell: bash
@@ -56,9 +64,30 @@ jobs:
       - name: Test
         run: |
           cd $GITHUB_WORKSPACE/build
-          time ctest -I $TEST_CHUNK -j `nproc` --output-on-failure
+          time ctest -I $TEST_CHUNK -j `nproc` --output-on-failure --output-junit $GITHUB_WORKSPACE/gcc13_assertions_test_report-$TEST_CHUNK.xml
         env:
           TEST_CHUNK: ${{ matrix.test-chunk }}
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        if: success() || failure()
+        with:
+          name: gcc13_assertions_test_report-${{ matrix.test-chunk }}.xml
+          path: |
+            ${{ github.workspace }}/gcc13_assertions_test_report-${{ matrix.test-chunk }}.xml
+          retention-days: 1
+
+  gcc13_assertions_test_report:
+    needs: gcc13_assertions_test
+    runs-on: ubuntu-latest
+    if: success() || failure()
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/merge_junit_report_artifacts
+        with:
+          junit-report-base-name: gcc13_assertions_test_report
+          retention-days: 2
 
   gcc9_build:
     runs-on: ubuntu-latest
@@ -68,6 +97,8 @@ jobs:
     defaults:
       run:
         shell: bash
+    outputs:
+      test-chunks: ${{ steps.set-matrix.outputs.chunk-array }}
     steps:
       - uses: actions/checkout@v4
       - name: Check docker hash
@@ -82,6 +113,13 @@ jobs:
         with:
           build-directory: ${{ github.workspace }}/build
           retention-days: 1
+      - uses: ./.github/actions/chunk_test_suite
+        id: set-matrix
+        with:
+          build-directory: ${{ github.workspace }}/build
+          source-directory: ${{ github.workspace }}
+          number-of-chunks: 15
+          junit-report-artifact-name: gcc9_test_report.xml
 
   gcc9_test:
     needs: gcc9_build
@@ -92,8 +130,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test-chunk: ["1,315", "316,443", "444,699", "700,804", "805,965", "966,1112", "1113,1502", "1503,1652",
-          "1653,2128", "2129,2429", "2430,2580", "2581,2696", "2697,2719", "2720,2737", "2738,"]
+        test-chunk: ${{fromJson(needs.gcc9_build.outputs.test-chunks)}}
     defaults:
       run:
         shell: bash
@@ -111,9 +148,30 @@ jobs:
       - name: Test
         run: |
           cd $GITHUB_WORKSPACE/build
-          time ctest -I $TEST_CHUNK -j `nproc` --output-on-failure
+          time ctest -I $TEST_CHUNK -j `nproc` --output-on-failure --output-junit $GITHUB_WORKSPACE/gcc9_test_report-$TEST_CHUNK.xml
         env:
           TEST_CHUNK: ${{ matrix.test-chunk }}
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        if: success() || failure()
+        with:
+          name: gcc9_test_report-${{ matrix.test-chunk }}.xml
+          path: |
+            ${{ github.workspace }}/gcc9_test_report-${{ matrix.test-chunk }}.xml
+          retention-days: 1
+
+  gcc9_test_report:
+    needs: gcc9_test
+    runs-on: ubuntu-latest
+    if: success() || failure()
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/merge_junit_report_artifacts
+        with:
+          junit-report-base-name: gcc9_test_report
+          retention-days: 2
 
   clang18_build:
     runs-on: ubuntu-latest
@@ -123,6 +181,8 @@ jobs:
     defaults:
       run:
         shell: bash
+    outputs:
+      test-chunks: ${{ steps.set-matrix.outputs.chunk-array }}
     steps:
       - uses: actions/checkout@v4
       - name: Check docker hash
@@ -137,6 +197,13 @@ jobs:
         with:
           build-directory: ${{ github.workspace }}/build
           retention-days: 1
+      - uses: ./.github/actions/chunk_test_suite
+        id: set-matrix
+        with:
+          build-directory: ${{ github.workspace }}/build
+          source-directory: ${{ github.workspace }}
+          number-of-chunks: 15
+          junit-report-artifact-name: clang18_test_report.xml
 
   clang18_test:
     needs: clang18_build
@@ -147,8 +214,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test-chunk: ["1,315", "316,443", "444,699", "700,804", "805,965", "966,1112", "1113,1502", "1503,1652",
-          "1653,2128", "2129,2429", "2430,2580", "2581,2696", "2697,2719", "2720,2737", "2738,"]
+        test-chunk: ${{fromJson(needs.clang18_build.outputs.test-chunks)}}
     defaults:
       run:
         shell: bash
@@ -166,9 +232,30 @@ jobs:
       - name: Test
         run: |
           cd $GITHUB_WORKSPACE/build
-          time ctest -I $TEST_CHUNK -j `nproc` --output-on-failure
+          time ctest -I $TEST_CHUNK -j `nproc` --output-on-failure --output-junit $GITHUB_WORKSPACE/clang18_test_report-$TEST_CHUNK.xml
         env:
           TEST_CHUNK: ${{ matrix.test-chunk }}
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        if: success() || failure()
+        with:
+          name: clang18_test_report-${{ matrix.test-chunk }}.xml
+          path: |
+            ${{ github.workspace }}/clang18_test_report-${{ matrix.test-chunk }}.xml
+          retention-days: 1
+
+  clang18_test_report:
+    needs: clang18_test
+    runs-on: ubuntu-latest
+    if: success() || failure()
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/merge_junit_report_artifacts
+        with:
+          junit-report-base-name: clang18_test_report
+          retention-days: 2
 
   gcc13_asan_build:
     runs-on: ubuntu-latest
@@ -178,6 +265,8 @@ jobs:
     defaults:
       run:
         shell: bash
+    outputs:
+      test-chunks: ${{ steps.set-matrix.outputs.chunk-array }}
     steps:
       - uses: actions/checkout@v4
       - name: Check docker hash
@@ -192,6 +281,13 @@ jobs:
         with:
           build-directory: ${{ github.workspace }}/build
           retention-days: 1
+      - uses: ./.github/actions/chunk_test_suite
+        id: set-matrix
+        with:
+          build-directory: ${{ github.workspace }}/build
+          source-directory: ${{ github.workspace }}
+          number-of-chunks: 15
+          junit-report-artifact-name: gcc13_asan_test_report.xml
 
   gcc13_asan_test:
     needs: gcc13_asan_build
@@ -202,8 +298,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test-chunk: ["1,315", "316,443", "444,699", "700,804", "805,965", "966,1112", "1113,1502", "1503,1652",
-          "1653,2128", "2129,2429", "2430,2580", "2581,2696", "2697,2719", "2720,2737", "2738,"]
+        test-chunk: ${{fromJson(needs.gcc13_asan_build.outputs.test-chunks)}}
     defaults:
       run:
         shell: bash
@@ -221,6 +316,27 @@ jobs:
       - name: Test
         run: |
           cd $GITHUB_WORKSPACE/build
-          time ctest -I $TEST_CHUNK -j `nproc` --output-on-failure
+          time ctest -I $TEST_CHUNK -j `nproc` --output-on-failure --output-junit $GITHUB_WORKSPACE/gcc13_asan_test_report-$TEST_CHUNK.xml
         env:
           TEST_CHUNK: ${{ matrix.test-chunk }}
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        if: success() || failure()
+        with:
+          name: gcc13_asan_test_report-${{ matrix.test-chunk }}.xml
+          path: |
+            ${{ github.workspace }}/gcc13_asan_test_report-${{ matrix.test-chunk }}.xml
+          retention-days: 1
+
+  gcc13_asan_test_report:
+    needs: gcc13_asan_test
+    runs-on: ubuntu-latest
+    if: success() || failure()
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/merge_junit_report_artifacts
+        with:
+          junit-report-base-name: gcc13_asan_test_report
+          retention-days: 2

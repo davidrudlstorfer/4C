@@ -21,6 +21,8 @@ jobs:
     defaults:
       run:
         shell: bash
+    outputs:
+      test-chunks: ${{ steps.set-matrix.outputs.chunk-array }}
     steps:
       - uses: actions/checkout@v4
       - name: Check docker hash
@@ -35,6 +37,13 @@ jobs:
         with:
           build-directory: ${{ github.workspace }}/build
           retention-days: 1
+      - uses: ./.github/actions/chunk_test_suite
+        id: set-matrix
+        with:
+          build-directory: ${{ github.workspace }}/build
+          source-directory: ${{ github.workspace }}
+          number-of-chunks: 15
+          junit-report-artifact-name: gcc13_assertions_test_report.xml
 
   gcc13_assertions_test:
     needs: gcc13_assertions_build
@@ -46,8 +55,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test-chunk: ["1,315", "316,443", "444,699", "700,804", "805,965", "966,1112", "1113,1502", "1503,1652",
-          "1653,2128", "2129,2429", "2430,2580", "2581,2696", "2697,2719", "2720,2737", "2738,"]
+        test-chunk: ${{fromJson(needs.gcc13_assertions_build.outputs.test-chunks)}}
     defaults:
       run:
         shell: bash
@@ -65,9 +73,30 @@ jobs:
       - name: Test
         run: |
           cd $GITHUB_WORKSPACE/build
-          ctest -I $TEST_CHUNK -j `nproc` --output-on-failure
+          ctest -I $TEST_CHUNK -j `nproc` --output-on-failure --output-junit $GITHUB_WORKSPACE/gcc13_assertions_test_report-$TEST_CHUNK.xml
         env:
           TEST_CHUNK: ${{ matrix.test-chunk }}
+      - name: Upload test report
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gcc13_assertions_test_report-${{ matrix.test-chunk }}.xml
+          path: |
+            ${{ github.workspace }}/gcc13_assertions_test_report-${{ matrix.test-chunk }}.xml
+          retention-days: 1
+
+  gcc13_assertions_test_report:
+    needs: gcc13_assertions_test
+    runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/main' && (success() || failure())
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/merge_junit_report_artifacts
+        with:
+          junit-report-base-name: gcc13_assertions_test_report
+          retention-days: 1
 
   gcc9_build:
     runs-on: ubuntu-latest
@@ -169,13 +198,12 @@ jobs:
           ctest -L minimal -j `nproc` --output-on-failure
 
   ensure_all_tests_pass:
-    needs: [gcc9_build, gcc9_test_minimal, gcc13_assertions_test, gcc13_assertions_build, clang18_build,
-      clang18_test_minimal]
+    needs: [gcc9_build, gcc9_test_minimal, gcc13_assertions_test, gcc13_assertions_test_report, gcc13_assertions_build,
+      clang18_build, clang18_test_minimal]
     runs-on: ubuntu-latest
-    if: always()
+    if: always() && github.ref != 'refs/heads/main'
     steps:
       - name: Check for successful builds and tests
         uses: re-actors/alls-green@release/v1
         with:
-          allowed-skips: gcc13_assertions_test
           jobs: ${{ toJSON(needs) }}

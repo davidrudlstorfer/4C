@@ -30,18 +30,15 @@ void PARTICLEENGINE::read_particles(Core::IO::InputFile& input, const std::strin
   bool any_particles_read = false;
   for (const auto& particle_line : input.lines_in_section(section_name))
   {
-    if (!any_particles_read && !input.my_output_flag())
-      Core::IO::cout << "Read and create particles\n" << Core::IO::flush;
+    if (!any_particles_read) Core::IO::cout << "Read and create particles\n" << Core::IO::flush;
     any_particles_read = true;
 
     double t1 = time.totalElapsedTime(true);
     {
-      std::istringstream linestream{std::string{particle_line}};
-
       PARTICLEENGINE::TypeEnum particletype;
       PARTICLEENGINE::ParticleStates particlestates;
 
-      Core::IO::ValueParser parser{linestream, "While reading particle data: "};
+      Core::IO::ValueParser parser{particle_line, "While reading particle data: "};
       parser.consume("TYPE");
       auto type = parser.read<std::string>();
       parser.consume("POS");
@@ -61,6 +58,8 @@ void PARTICLEENGINE::read_particles(Core::IO::InputFile& input, const std::strin
         std::string statelabel;
         PARTICLEENGINE::StateEnum particlestate;
         std::vector<double> state;
+
+        std::istringstream linestream(std::string(parser.get_unparsed_remainder()));
 
         while (linestream >> statelabel)
         {
@@ -100,14 +99,14 @@ void PARTICLEENGINE::read_particles(Core::IO::InputFile& input, const std::strin
     }
 
     double t2 = time.totalElapsedTime(true);
-    if (!myrank && !input.my_output_flag())
+    if (!myrank)
     {
       printf("reading %10.5e secs\n", t2 - t1);
       fflush(stdout);
     }
   }
 
-  if (any_particles_read && !input.my_output_flag())
+  if (any_particles_read)
     printf("in............................................. %10.5e secs\n",
         time.totalElapsedTime(true));
 }

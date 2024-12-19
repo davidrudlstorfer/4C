@@ -16,8 +16,6 @@
 #include "4C_utils_std_cxx20_ranges.hpp"
 #include "4C_utils_string.hpp"
 
-#include <Epetra_Comm.h>
-
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
@@ -203,13 +201,13 @@ namespace Core::IO
     };
 
     /// construct a reader for a given file
-    InputFile(std::string filename, const Epetra_Comm& comm, int outflag = 0);
+    InputFile(std::string filename, MPI_Comm comm);
 
-    /// return my inputfile name
-    [[nodiscard]] std::string my_inputfile_name() const;
-
-    /// return my output flag
-    [[nodiscard]] int my_output_flag() const;
+    /**
+     * Get the (absolute) file path of the input file that contained a section. If the section is
+     * unknown or was not read from any file, an empty path is returned.
+     */
+    [[nodiscard]] std::filesystem::path file_for_section(const std::string& section_name) const;
 
     /**
      * Get a a range of lines inside a section that have actual content, i.e., they contain
@@ -239,7 +237,7 @@ namespace Core::IO
     /**
      * Access MPI communicator associated with this object.
      */
-    [[nodiscard]] const Epetra_Comm& get_comm() const { return comm_; }
+    [[nodiscard]] MPI_Comm get_comm() const { return comm_; }
 
     /**
      * Print a list of all sections that are contained in the input file but never
@@ -259,7 +257,7 @@ namespace Core::IO
     /**
      * The shared part of reading a file and postprocessing its content.
      */
-    void read_generic();
+    void read_generic(const std::filesystem::path& top_level_file);
 
     //! Remember that a section was used.
     void record_section_used(const std::string& section_name);
@@ -268,14 +266,8 @@ namespace Core::IO
     //! Does not record the section as used.
     [[nodiscard]] auto line_range(const std::string& section_name) const;
 
-    /// The top-level file that is first read by this object.
-    std::filesystem::path top_level_file_;
-
     /// The communicator associated with this object.
-    const Epetra_Comm& comm_;
-
-    /// Flag for output (default: output should be written)
-    int outflag_{};
+    MPI_Comm comm_;
 
     /// The whole input file.
     std::vector<char> inputfile_;
@@ -288,6 +280,9 @@ namespace Core::IO
 
     /// Section positions of all sections inside the #inputfile_ array.
     std::map<std::string, std::pair<std::size_t, std::size_t>> positions_;
+
+    /// Mapping of section names to the file they were read from.
+    std::unordered_map<std::string, std::string> section_to_file_mapping_;
 
     /// Protocol of known and unknown section names
     std::map<std::string, bool> knownsections_;

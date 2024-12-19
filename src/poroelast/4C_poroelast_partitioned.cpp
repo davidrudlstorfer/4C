@@ -15,8 +15,7 @@
 
 FOUR_C_NAMESPACE_OPEN
 
-PoroElast::Partitioned::Partitioned(const Epetra_Comm& comm,
-    const Teuchos::ParameterList& timeparams,
+PoroElast::Partitioned::Partitioned(MPI_Comm comm, const Teuchos::ParameterList& timeparams,
     std::shared_ptr<Core::LinAlg::MapExtractor> porosity_splitter)
     : PoroBase(comm, timeparams, porosity_splitter),
       fluidincnp_(std::make_shared<Core::LinAlg::Vector<double>>(*(fluid_field()->velnp()))),
@@ -24,8 +23,8 @@ PoroElast::Partitioned::Partitioned(const Epetra_Comm& comm,
 {
   const Teuchos::ParameterList& porodyn = Global::Problem::instance()->poroelast_dynamic_params();
   // Get the parameters for the convergence_check
-  itmax_ = porodyn.get<int>("ITEMAX");     // default: =10
-  ittol_ = porodyn.get<double>("INCTOL");  // default: =1e-6
+  itmax_ = porodyn.get<int>("ITEMAX");            // default: =10
+  ittol_ = porodyn.get<double>("TOLINC_GLOBAL");  // default: =1e-8
 
   fluidveln_ = Core::LinAlg::create_vector(*(fluid_field()->dof_row_map()), true);
   fluidveln_->PutScalar(0.0);

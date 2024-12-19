@@ -18,7 +18,7 @@ namespace
 
   TEST(AllGather, Maps)
   {
-    Epetra_MpiComm comm(MPI_COMM_WORLD);
+    MPI_Comm comm(MPI_COMM_WORLD);
 
     // at least two procs required
     ASSERT_GT(Core::Communication::num_mpi_ranks(comm), 1);
@@ -48,7 +48,7 @@ namespace
 
   TEST(AllReduce, Vector)
   {
-    Epetra_MpiComm comm(MPI_COMM_WORLD);
+    MPI_Comm comm(MPI_COMM_WORLD);
 
     // at least two procs required
     ASSERT_GT(Core::Communication::num_mpi_ranks(comm), 1);
@@ -68,7 +68,7 @@ namespace
 
   TEST(AllReduce, PairVector)
   {
-    Epetra_MpiComm comm(MPI_COMM_WORLD);
+    MPI_Comm comm(MPI_COMM_WORLD);
 
     // at least two procs required
     ASSERT_GT(Core::Communication::num_mpi_ranks(comm), 1);
@@ -92,7 +92,7 @@ namespace
 
   TEST(AllReduce, Map)
   {
-    Epetra_MpiComm comm(MPI_COMM_WORLD);
+    MPI_Comm comm(MPI_COMM_WORLD);
 
     // at least two procs required
     ASSERT_GT(Core::Communication::num_mpi_ranks(comm), 1);
@@ -112,7 +112,7 @@ namespace
 
   TEST(AllReduce, UnorderedMap)
   {
-    Epetra_MpiComm comm(MPI_COMM_WORLD);
+    MPI_Comm comm(MPI_COMM_WORLD);
 
     // at least two procs required
     ASSERT_GT(Core::Communication::num_mpi_ranks(comm), 1);
@@ -133,7 +133,7 @@ namespace
 
   TEST(AllReduce, UnorderedMultiMap)
   {
-    Epetra_MpiComm comm(MPI_COMM_WORLD);
+    MPI_Comm comm(MPI_COMM_WORLD);
 
     // at least two procs required
     ASSERT_GT(Core::Communication::num_mpi_ranks(comm), 1);
@@ -153,7 +153,7 @@ namespace
 
   TEST(AllReduce, Set)
   {
-    Epetra_MpiComm comm(MPI_COMM_WORLD);
+    MPI_Comm comm(MPI_COMM_WORLD);
 
     // at least two procs required
     ASSERT_GT(Core::Communication::num_mpi_ranks(comm), 1);
@@ -174,7 +174,7 @@ namespace
 
   TEST(AllReduce, VectorNonTrivial)
   {
-    Epetra_MpiComm comm(MPI_COMM_WORLD);
+    MPI_Comm comm(MPI_COMM_WORLD);
 
     // at least two procs required
     ASSERT_GT(Core::Communication::num_mpi_ranks(comm), 1);
@@ -194,7 +194,7 @@ namespace
 
   TEST(AllReduce, ComplicatedMap)
   {
-    Epetra_MpiComm comm(MPI_COMM_WORLD);
+    MPI_Comm comm(MPI_COMM_WORLD);
 
     // at least two procs required
     ASSERT_GT(Core::Communication::num_mpi_ranks(comm), 1);
@@ -215,7 +215,7 @@ namespace
 
   TEST(AllReduce, MapValuesOr)
   {
-    Epetra_MpiComm comm(MPI_COMM_WORLD);
+    MPI_Comm comm(MPI_COMM_WORLD);
 
     // at least two procs required
     ASSERT_GT(Core::Communication::num_mpi_ranks(comm), 1);
@@ -243,6 +243,29 @@ namespace
     }
     expected["key"] = false;
     EXPECT_EQ(reduced_map, expected);
+  }
+
+  TEST(Broadcast, Vector)
+  {
+    MPI_Comm comm(MPI_COMM_WORLD);
+
+    // at least two procs required
+    ASSERT_GT(Core::Communication::num_mpi_ranks(comm), 1);
+
+    const int myPID = Core::Communication::my_mpi_rank(comm);
+    std::vector<double> vec;
+    if (myPID == 0)
+    {
+      vec = {1.0, 2.0, 3.0};
+    }
+    else
+    {
+      vec.resize(3);
+    }
+
+    Core::Communication::broadcast(vec, 0, comm);
+
+    EXPECT_EQ(vec, std::vector<double>({1.0, 2.0, 3.0}));
   }
 
 
