@@ -705,7 +705,7 @@ void BeamInteraction::SUBMODELEVALUATOR::BeamPotential::find_and_store_neighbori
     // Check if the current element is relevant for beam-to-xxx contact.
     Core::Elements::Element* currele = discret().l_col_element(colele_i);
     const Core::Binstrategy::Utils::BinContentType contact_type =
-        BEAMINTERACTION::Utils::convert_element_to_bin_content_type(currele);
+        BeamInteraction::Utils::convert_element_to_bin_content_type(currele);
 
     {
       other_bounding_boxes.emplace_back(std::make_pair(currele->id(),
