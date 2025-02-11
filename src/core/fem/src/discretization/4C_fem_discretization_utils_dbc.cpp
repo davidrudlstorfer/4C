@@ -288,11 +288,9 @@ void Core::FE::Utils::Dbc::read_dirichlet_condition(const Teuchos::ParameterList
           "%d is not a multiple of %d",
           actnode->id(), total_numdf, numdf);
 
-    // is the number of degrees of freedom given in the constraint definition sufficient?
-    const int num_dbc_dofs = static_cast<int>(onoff.size());
-    if (num_dbc_dofs < numdf)
-      FOUR_C_THROW("%d DOFs given but %d expected in %s", num_dbc_dofs, numdf,
-          Core::Conditions::to_string(cond.type()).data());
+    FOUR_C_ASSERT_ALWAYS((static_cast<int>(onoff.size()) == numdf),
+        "%d DOFs given but %d expected in %s", static_cast<int>(onoff.size()), numdf,
+        Core::Conditions::to_string(cond.type()).data());
 
     // loop over dofs of current nnode
     for (unsigned j = 0; j < total_numdf; ++j)
