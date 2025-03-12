@@ -15,9 +15,9 @@
         "FOUR_C_TRILINOS_ROOT": "/lnm/lib/packages/trilinos/16-1-0_v2/release-shared",
         "BUILD_SHARED_LIBS": "ON",
         "CMAKE_BUILD_TYPE": "RELEASE",
-        "CMAKE_CXX_COMPILER": "/lnm/spack_packages/linux-ubuntu20.04-ivybridge/gcc-13.2.0/bin/g++",
+        "CMAKE_CXX_COMPILER": "g++",
         "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
-        "CMAKE_C_COMPILER": "/lnm/spack_packages/linux-ubuntu20.04-ivybridge/gcc-13.2.0/bin/gcc",
+        "CMAKE_C_COMPILER": "gcc",
         "CMAKE_C_COMPILER_LAUNCHER": "ccache"
       }
     },
@@ -61,6 +61,50 @@
         "FOUR_C_WITH_ARBORX": "OFF",
         "FOUR_C_WITH_MIRCO": "ON",
         "CMAKE_BUILD_TYPE": "DEBUG"
+      }
+    },
+    {
+      "name": "lnm_workstation_ubuntu_20_04",
+      "displayName": "Release build for an LNM workstation on Ubuntu 20.04",
+      "inherits": [
+        "lnm_workstation"
+      ],
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "/lnm/spack_packages/linux-ubuntu20.04-ivybridge/gcc-13.2.0/bin/g++",
+        "CMAKE_C_COMPILER": "/lnm/spack_packages/linux-ubuntu20.04-ivybridge/gcc-13.2.0/bin/gcc"
+      }
+    },
+    {
+      "name": "lnm_workstation_relwithdebinfo_ubuntu_20_04",
+      "displayName": "Release build with debug information for an LNM workstation on Ubuntu 20.04",
+      "inherits": [
+        "lnm_workstation_relwithdebinfo"
+      ],
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "/lnm/spack_packages/linux-ubuntu20.04-ivybridge/gcc-13.2.0/bin/g++",
+        "CMAKE_C_COMPILER": "/lnm/spack_packages/linux-ubuntu20.04-ivybridge/gcc-13.2.0/bin/gcc"
+      }
+    },
+    {
+      "name": "lnm_workstation_debug_ubuntu_20_04",
+      "displayName": "Debug build for an LNM workstation on Ubuntu 20.04",
+      "inherits": [
+        "lnm_workstation_debug"
+      ],
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "/lnm/spack_packages/linux-ubuntu20.04-ivybridge/gcc-13.2.0/bin/g++",
+        "CMAKE_C_COMPILER": "/lnm/spack_packages/linux-ubuntu20.04-ivybridge/gcc-13.2.0/bin/gcc"
+      }
+    },
+    {
+      "name": "lnm_workstation_coverage_ubuntu_20_04",
+      "displayName": "Coverage report for an LNM workstation on Ubuntu 20.04",
+      "inherits": [
+        "lnm_workstation_coverage"
+      ],
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "/lnm/spack_packages/linux-ubuntu20.04-ivybridge/gcc-13.2.0/bin/g++",
+        "CMAKE_C_COMPILER": "/lnm/spack_packages/linux-ubuntu20.04-ivybridge/gcc-13.2.0/bin/gcc"
       }
     }
   ]
